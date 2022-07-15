@@ -1,30 +1,32 @@
 class MusicasController < ApplicationController
   before_action :set_musica, only: [:show, :update, :destroy]
 
-  # GET /musicas
-  def index
-    @musicas = Musica.all
 
+  def index
+    
+    @musicas = filtrar_musica
     render json: @musicas
+  
   end
 
-  # GET /musicas/1
+
   def show
     render json: @musica
   end
 
-  # POST /musicas
+
   def create
     @musica = Musica.new(musica_params)
 
     if @musica.save
+      dispara_email
       render json: @musica, status: :created, location: @musica
     else
       render json: @musica.errors, status: :unprocessable_entity
     end
   end
 
-  # PATCH/PUT /musicas/1
+ 
   def update
     if @musica.update(musica_params)
       render json: @musica
@@ -33,19 +35,33 @@ class MusicasController < ApplicationController
     end
   end
 
-  # DELETE /musicas/1
+
   def destroy
     @musica.destroy
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
+
+    def dispara_email
+      UsuarioMailer.musica_adicionada.deliver_now!
+    end
+
     def set_musica
       @musica = Musica.find(params[:id])
     end
 
-    # Only allow a trusted parameter "white list" through.
     def musica_params
       params.require(:musica).permit(:nome, :duracao, :criado_por, :url)
+    end
+
+    def filtrar_musica
+     
+       if params['nome'].present?
+          Musica.where(nome: params['nome'])
+       elsif params['criado_por'].present? 
+          Musica.where(criado_por: params['criado_por'])
+       else
+          Musica.all
+       end
     end
 end

@@ -1,2 +1,3 @@
 class Musica < ApplicationRecord
+
 end
